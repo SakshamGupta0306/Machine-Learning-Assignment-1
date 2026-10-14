@@ -1,3 +1,8 @@
+--- Part 1 Sanity Checks ---
+(a) Gini (3,3): 0.50 (Expected: 0.50) | Entropy: 1.00 (Expected: 1.00)
+(b) Acc: 100% (Expected: 100%), Threshold: 2.5 (Expected: 2.5)
+(c) Leaf prediction: 1 (Expected: 1)
+
 Total rows: 7195
 Total features: 22
 Train split: 5756 rows, Test split: 1439 rows

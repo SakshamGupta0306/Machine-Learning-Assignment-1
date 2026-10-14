@@ -137,8 +137,38 @@ class DecisionTree:
             return self._traverse(x, node.left)
         return self._traverse(x, node.right)
 
+def run_part1_sanity_checks():
+    print("--- Part 1 Sanity Checks ---")
+    
+    # (a) G=0.5 and H=1 for class counts (3,3)[cite: 3]
+    tree = DecisionTree(criterion="gini")
+    tree.n_classes = 2
+    g = tree._impurity(np.array([3, 3]))
+    
+    tree.criterion = "entropy"
+    h = tree._impurity(np.array([3, 3]))
+    print(f"(a) Gini (3,3): {g:.2f} (Expected: 0.50) | Entropy: {h:.2f} (Expected: 1.00)")
+
+    # (b) X=[[1],[2],[3],[4]], y=[0,0,1,1] must give split at t=2.5 with acc 1.0[cite: 3]
+    X_b = np.array([[1], [2], [3], [4]])
+    y_b = np.array([0, 0, 1, 1])
+    tree_b = DecisionTree(criterion="entropy")
+    tree_b.fit(X_b, y_b)
+    acc_b = get_accuracy(y_b, tree_b.predict(X_b))
+    print(f"(b) Acc: {acc_b*100:.0f}% (Expected: 100%), Threshold: {tree_b.root.threshold} (Expected: 2.5)")
+
+    # (c) Three identical samples, weights [0.1, 0.1, 0.8], labels [0,0,1] -> predicts 1[cite: 3]
+    X_c = np.array([[1], [1], [1]]) # Identical features force it to become a leaf
+    y_c = np.array([0, 0, 1])
+    w_c = np.array([0.1, 0.1, 0.8])
+    tree_c = DecisionTree()
+    tree_c.fit(X_c, y_c, sample_weight=w_c)
+    print(f"(c) Leaf prediction: {tree_c.predict(X_c)[0]} (Expected: 1)\n")
+
 
 if __name__ == "__main__":
+    run_part1_sanity_checks()
+    
     # 1. Load Data & Split
     X, y_species, y_family, species_to_family = load_data()
     train_idx, test_idx = stratified_split(y_species, test_frac=0.2, seed=42)

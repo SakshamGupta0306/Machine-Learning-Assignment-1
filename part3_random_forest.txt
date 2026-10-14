@@ -1,0 +1,8 @@
+=== Random Forest (T=50, m=4, max_depth=None) ===
+Criterion: Gini
+  Train Acc: 100.00% | Test Acc: 97.71% | Derived Family Acc: 98.19%
+  [Pairwise Agreement on Test Set] RF: 90.03% vs Bagging: 92.13%
+
+Criterion: Entropy
+  Train Acc: 100.00% | Test Acc: 97.43% | Derived Family Acc: 98.12%
+  [Pairwise Agreement on Test Set] RF: 90.33% vs Bagging: 93.09%

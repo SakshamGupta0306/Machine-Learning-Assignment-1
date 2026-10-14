@@ -6,8 +6,9 @@ Criterion: Entropy
 
 === AdaBoost SAMME (T=50) ===
 Criterion: Gini
-  Train Acc (depth=3): 97.52% | Test Acc: 95.34% | Derived Family Acc: 96.73%
-  [Stumps Test Acc (depth=1): 83.32%]
+  Depth=3 -> Train Acc: 97.52% | Test Acc: 95.34% | Derived Family Acc: 96.73%
+  Depth=1 -> Train Acc: 84.12% | Test Acc: 83.32% | Derived Family Acc: 88.81%
+
 Criterion: Entropy
-  Train Acc (depth=3): 96.35% | Test Acc: 94.16% | Derived Family Acc: 95.00%
-  [Stumps Test Acc (depth=1): 84.16%]
+  Depth=3 -> Train Acc: 96.35% | Test Acc: 94.16% | Derived Family Acc: 95.00%
+  Depth=1 -> Train Acc: 83.79% | Test Acc: 84.16% | Derived Family Acc: 87.77%

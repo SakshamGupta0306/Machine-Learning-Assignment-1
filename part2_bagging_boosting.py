@@ -116,8 +116,12 @@ if __name__ == "__main__":
         # Stumps analysis requirement (max_depth=1)
         stump_boost = AdaBoostSAMME(criterion=criterion, max_depth=1)
         stump_boost.fit(X_train, y_train)
-        stump_test_acc = get_accuracy(y_test, stump_boost.predict(X_test)) * 100
+        
+        stump_train_acc = get_accuracy(y_train, stump_boost.predict(X_train)) * 100
+        stump_preds_test = stump_boost.predict(X_test)
+        stump_test_acc = get_accuracy(y_test, stump_preds_test) * 100
+        stump_family_acc = get_accuracy(y_family_test, np.array([species_to_family[p] for p in stump_preds_test])) * 100
         
         print(f"Criterion: {criterion.capitalize()}")
-        print(f"  Train Acc (depth=3): {train_acc:.2f}% | Test Acc: {test_acc:.2f}% | Derived Family Acc: {family_acc:.2f}%")
-        print(f"  [Stumps Test Acc (depth=1): {stump_test_acc:.2f}%]")  
+        print(f"  Depth=3 -> Train Acc: {train_acc:.2f}% | Test Acc: {test_acc:.2f}% | Derived Family Acc: {family_acc:.2f}%")
+        print(f"  Depth=1 -> Train Acc: {stump_train_acc:.2f}% | Test Acc: {stump_test_acc:.2f}% | Derived Family Acc: {stump_family_acc:.2f}%\n")
