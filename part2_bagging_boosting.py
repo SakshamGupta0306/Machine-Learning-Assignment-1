@@ -78,7 +78,7 @@ class AdaBoostSAMME:
 
 if __name__ == "__main__":
     # Note: load_data now returns 3 variables
-    X, y_species, y_family = load_data()
+    X, y_species, y_family, family_classes = load_data()
     train_idx, test_idx = stratified_split(y_species, test_frac=0.2, seed=42)
     X_train, y_train, X_test, y_test = X[train_idx], y_species[train_idx], X[test_idx], y_species[test_idx]
     

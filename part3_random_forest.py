@@ -31,13 +31,11 @@ class RandomForest:
 
     def predict(self, X):
         all_preds = np.array([tree.predict(X) for tree in self.trees])
-        # Majority vote with tie-breaking to smallest class label
-        final_preds = np.apply_along_axis(
-            lambda x: np.bincount(x, minlength=10).argmax(), 
+        return np.apply_along_axis(
+            lambda x: np.bincount(x, minlength=self.n_classes).argmax(), 
             axis=0, 
             arr=all_preds
         )
-        return final_preds
 
 def pairwise_agreement(trees, X):
     """Calculates the average pairwise agreement of test predictions (Extra task)."""
@@ -54,7 +52,7 @@ def pairwise_agreement(trees, X):
 
 if __name__ == "__main__":
     # Note: load_data now returns 3 variables
-    X, y_species, y_family = load_data()
+    X, y_species, y_family, family_classes = load_data()
     train_idx, test_idx = stratified_split(y_species, test_frac=0.2, seed=42)
     X_train, y_train, X_test, y_test = X[train_idx], y_species[train_idx], X[test_idx], y_species[test_idx]
     
@@ -76,10 +74,20 @@ if __name__ == "__main__":
         print(f"  Train Acc: {train_acc:.2f}% | Test Acc: {test_acc:.2f}% | Derived Family Acc: {family_acc:.2f}%")
         
         # Extra: Compare agreement with Bagging
-        bagging = Bagging(n_estimators=50, criterion=criterion)
-        bagging.fit(X_train, y_train)
+        bagging_50 = Bagging(n_estimators=50, criterion=criterion)
+        bagging_50.fit(X_train, y_train)
+        
+        # Train baseline models for self-contained comparison
+        single_tree = DecisionTree(criterion=criterion)
+        single_tree.fit(X_train, y_train)
+        bagging_25 = Bagging(n_estimators=25, criterion=criterion)
+        bagging_25.fit(X_train, y_train)
         
         rf_agreement = pairwise_agreement(rf.trees, X_test) * 100
-        bag_agreement = pairwise_agreement(bagging.trees, X_test) * 100
+        bag_agreement = pairwise_agreement(bagging_50.trees, X_test) * 100
         
-        print(f"  [Pairwise Agreement on Test Set] RF: {rf_agreement:.2f}% vs Bagging: {bag_agreement:.2f}%\n")
+        single_acc = get_accuracy(y_test, single_tree.predict(X_test)) * 100
+        bag_25_acc = get_accuracy(y_test, bagging_25.predict(X_test)) * 100
+        
+        print(f"  [Pairwise Agreement on Test Set] RF (T=50): {rf_agreement:.2f}% vs Bagging (T=50): {bag_agreement:.2f}%")
+        print(f"  [Accuracy Comparison] Single Tree: {single_acc:.2f}% | Bagging (T=25): {bag_25_acc:.2f}% | RF (T=50): {test_acc:.2f}%\n")

@@ -8,10 +8,11 @@ def compute_confusion_matrix(y_true, y_pred, n_classes):
     return cm.reshape(n_classes, n_classes)
 
 class HierarchicalClassifier:
-    def __init__(self, router, experts, int_to_family_name):
+    def __init__(self, router, experts):
         self.router = router
         self.experts = experts
-        self.int_to_family_name = int_to_family_name
+        # Alphabetical sorting of expert names directly matches the 0..3 integer mapping
+        self.family_names = sorted(list(experts.keys()))
 
     def predict_family(self, X):
         return self.router.predict(X)
@@ -20,35 +21,35 @@ class HierarchicalClassifier:
         pred_families = self.predict_family(X)
         final_species = np.zeros(len(X), dtype=int)
         
-        # Route grouped samples to their respective experts
-        for fam_int, fam_name in self.int_to_family_name.items():
+        # Enumerate gives fam_int (0..3) and fam_name simultaneously
+        for fam_int, fam_name in enumerate(self.family_names):
             mask = (pred_families == fam_int)
             if np.any(mask):
                 final_species[mask] = self.experts[fam_name].predict(X[mask])
         return final_species
 
     def oracle_predict(self, X, true_families):
-        """Predicts species assuming a perfect router."""
         oracle_species = np.zeros(len(X), dtype=int)
-        for fam_int, fam_name in self.int_to_family_name.items():
+        for fam_int, fam_name in enumerate(self.family_names):
             mask = (true_families == fam_int)
             if np.any(mask):
                 oracle_species[mask] = self.experts[fam_name].predict(X[mask])
         return oracle_species
 
 if __name__ == "__main__":
-    X, y_species, y_family = load_data()
+    X, y_species, y_family, family_classes = load_data()
     train_idx, test_idx = stratified_split(y_species, test_frac=0.2, seed=42)
     
     X_train, y_species_train, y_family_train = X[train_idx], y_species[train_idx], y_family[train_idx]
     X_test, y_species_test, y_family_test = X[test_idx], y_species[test_idx], y_family[test_idx]
     
-    # Generate the mapping strictly from training data to avoid leakage
     species_to_family = get_species_to_family(y_species_train, y_family_train)
-    int_to_fam = {0: "Bufonidae", 1: "Dendrobatidae", 2: "Hylidae", 3: "Leptodactylidae"}
+    
+    # Dynamically build the mapping dictionary
+    int_to_fam = {i: name for i, name in enumerate(family_classes)}
     
     n_species = len(np.unique(y_species))
-    n_families = len(np.unique(y_family))
+    n_families = len(family_classes)
 
     print("=== Hierarchical Decision Tree ===")
     for criterion in ["gini", "entropy"]:
@@ -72,7 +73,8 @@ if __name__ == "__main__":
             expert.fit(X_train[mask], y_species_train[mask])
             experts[fam_name] = expert
             
-        clf = HierarchicalClassifier(router, experts, int_to_fam)
+        # Spec-compliant initialization
+        clf = HierarchicalClassifier(router, experts)
         
         # 3. Predictions
         fam_pred_train = clf.predict_family(X_train)

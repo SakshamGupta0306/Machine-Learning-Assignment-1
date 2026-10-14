@@ -26,7 +26,7 @@ def load_data(filepath="Frogs_MFCCs.csv"):
     y_species = np.array([species_to_int[s] for s in species_raw])
     y_family = np.array([family_to_int[f] for f in family_raw])
         
-    return X, y_species, y_family
+    return X, y_species, y_family, family_classes
 
 def get_species_to_family(y_species_train, y_family_train):
     """Build mapping strictly from training data to prevent data leakage."""

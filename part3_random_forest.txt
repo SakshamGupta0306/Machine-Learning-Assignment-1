@@ -1,8 +1,10 @@
 === Random Forest (T=50, m=4, max_depth=None) ===
 Criterion: Gini
   Train Acc: 100.00% | Test Acc: 97.71% | Derived Family Acc: 98.19%
-  [Pairwise Agreement on Test Set] RF: 90.03% vs Bagging: 92.13%
+  [Pairwise Agreement on Test Set] RF (T=50): 90.03% vs Bagging (T=50): 92.13%
+  [Accuracy Comparison] Single Tree: 94.86% | Bagging (T=25): 96.80% | RF (T=50): 97.71%
 
 Criterion: Entropy
   Train Acc: 100.00% | Test Acc: 97.43% | Derived Family Acc: 98.12%
-  [Pairwise Agreement on Test Set] RF: 90.33% vs Bagging: 93.09%
+  [Pairwise Agreement on Test Set] RF (T=50): 90.33% vs Bagging (T=50): 93.09%
+  [Accuracy Comparison] Single Tree: 95.48% | Bagging (T=25): 96.94% | RF (T=50): 97.43%
