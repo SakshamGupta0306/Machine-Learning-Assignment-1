@@ -1,5 +1,5 @@
 import numpy as np
-from common import load_data, stratified_split, get_accuracy
+from common import load_data, stratified_split, get_accuracy, get_species_to_family
 from part1_decision_tree import DecisionTree
 
 class Bagging:
@@ -10,6 +10,7 @@ class Bagging:
         self.trees = []
 
     def fit(self, X, y):
+        self.n_classes = np.max(y) + 1
         # One fresh RandomState per ensemble model
         rng = np.random.RandomState(self.seed)
         N = len(X)
@@ -23,16 +24,8 @@ class Bagging:
             self.trees.append(tree)
 
     def predict(self, X):
-        # Shape: (n_estimators, n_samples)
         all_preds = np.array([tree.predict(X) for tree in self.trees])
-        
-        # Majority vote; np.bincount's argmax defaults to the lowest index (smallest class label) on ties
-        final_preds = np.apply_along_axis(
-            lambda x: np.bincount(x, minlength=10).argmax(), 
-            axis=0, 
-            arr=all_preds
-        )
-        return final_preds
+        return np.apply_along_axis(lambda x: np.bincount(x, minlength=self.n_classes).argmax(), axis=0, arr=all_preds)
 
 class AdaBoostSAMME:
     def __init__(self, n_estimators=50, criterion="gini", max_depth=3):
@@ -43,6 +36,7 @@ class AdaBoostSAMME:
         self.K = None
 
     def fit(self, X, y):
+        self.n_classes = np.max(y) + 1
         N = len(X)
         self.K = np.max(y) + 1
         w = np.ones(N) / N
@@ -57,7 +51,7 @@ class AdaBoostSAMME:
             # Weighted error
             misclassified = (preds != y)
             err = np.sum(w[misclassified])
-            err = np.clip(err, 1e-16, 1 - 1e-10)
+            err = np.clip(err, 1e-10, 1 - 1e-10)
             
             if err >= 1.0 - (1.0 / self.K):
                 break # Model is no better than random guessing
@@ -83,12 +77,15 @@ class AdaBoostSAMME:
         return np.argmax(scores, axis=1)
 
 if __name__ == "__main__":
-    X, y_species, y_family, species_to_family = load_data()
+    # Note: load_data now returns 3 variables
+    X, y_species, y_family = load_data()
     train_idx, test_idx = stratified_split(y_species, test_frac=0.2, seed=42)
-    X_train, y_train = X[train_idx], y_species[train_idx]
-    X_test, y_test = X[test_idx], y_species[test_idx]
+    X_train, y_train, X_test, y_test = X[train_idx], y_species[train_idx], X[test_idx], y_species[test_idx]
+    
+    # Build mapping from train only
+    species_to_family = get_species_to_family(y_train, y_family[train_idx])
     y_family_test = y_family[test_idx]
-
+    
     print("=== Bagging (T=25, max_depth=None) ===")
     for criterion in ["gini", "entropy"]:
         bagging = Bagging(criterion=criterion)

@@ -1,5 +1,5 @@
 import numpy as np
-from common import load_data, stratified_split, get_accuracy
+from common import load_data, stratified_split, get_accuracy, get_species_to_family
 
 class GaussianNB:
     def __init__(self, var_smoothing=1e-9):
@@ -53,7 +53,7 @@ class GaussianNB:
 def run_part5_sanity_checks():
     print("--- Part 5 Sanity Check ---")
     
-    # 1D feature, class 0 {0,2}, class 1 {10,12}. x=3 -> class 0, x=9 -> class 1[cite: 8]
+    # 1D feature, class 0 {0,2}, class 1 {10,12}. x=3 -> class 0, x=9 -> class 1
     X_s = np.array([[0], [2], [10], [12]])
     y_s = np.array([0, 0, 1, 1])
     
@@ -69,11 +69,13 @@ def run_part5_sanity_checks():
 if __name__ == "__main__":
     run_part5_sanity_checks()
     
-    X, y_species, y_family, species_to_family = load_data()
+    # 1. Load Data & Split
+    X, y_species, y_family = load_data()
     train_idx, test_idx = stratified_split(y_species, test_frac=0.2, seed=42)
+    X_train, y_train, X_test, y_test = X[train_idx], y_species[train_idx], X[test_idx], y_species[test_idx]
     
-    X_train, y_train = X[train_idx], y_species[train_idx]
-    X_test, y_test = X[test_idx], y_species[test_idx]
+    # Build mapping from train only
+    species_to_family = get_species_to_family(y_train, y_family[train_idx])
     y_family_test = y_family[test_idx]
 
     print("=== Gaussian Naive Bayes ===")
@@ -89,21 +91,14 @@ if __name__ == "__main__":
     print(f"  Test Acc: {test_acc:.2f}%")
     print(f"  Derived Family Acc: {family_acc:.2f}%")
     
-    # Correlation analysis for Part 5 Task 2
-    # corr_matrix = np.corrcoef(X_train, rowvar=False)
-    # avg_corr = np.mean(np.abs(corr_matrix) - np.eye(X_train.shape[1]))
-    # print(f"\n  [Analysis] Average absolute feature correlation: {avg_corr:.3f}")
-    
-    # Correlation analysis for Part 5 Task 2
+   # Correlation analysis for Part 5 Task 2
     corr_matrix = np.corrcoef(X_train, rowvar=False)
     
-    # Temporarily set numpy print options for clean matrix formatting
-    np.set_printoptions(precision=2, suppress=True, linewidth=150)
-    print("\n  [Analysis] 22x22 Feature Correlation Matrix:")
-    print(corr_matrix)
+    with np.printoptions(precision=2, suppress=True, linewidth=150):
+        print("\n  [Analysis] 22x22 Feature Correlation Matrix:")
+        print(corr_matrix)
     
-    # Reset print options back to default
-    np.set_printoptions(edgeitems=3, infstr='inf', linewidth=75, nanstr='nan', precision=8, suppress=False, threshold=1000, formatter=None)
-    
-    avg_corr = np.mean(np.abs(corr_matrix) - np.eye(X_train.shape[1]))
+    d = X_train.shape[1]
+    # Correct formula: divide by off-diagonal count d*(d-1)
+    avg_corr = np.sum(np.abs(corr_matrix) - np.eye(d)) / (d * (d - 1))
     print(f"\n  [Analysis] Average absolute feature correlation: {avg_corr:.3f}")

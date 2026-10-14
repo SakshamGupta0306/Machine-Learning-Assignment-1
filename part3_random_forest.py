@@ -1,5 +1,5 @@
 import numpy as np
-from common import load_data, stratified_split, get_accuracy
+from common import load_data, stratified_split, get_accuracy, get_species_to_family
 from part1_decision_tree import DecisionTree
 from part2_bagging_boosting import Bagging
 
@@ -13,6 +13,7 @@ class RandomForest:
 
     def fit(self, X, y):
         # One fresh RandomState per ensemble model for ALL its randomness
+        self.n_classes = np.max(y) + 1
         rng = np.random.RandomState(self.seed)
         N = len(X)
         self.trees = []
@@ -52,10 +53,13 @@ def pairwise_agreement(trees, X):
     return np.mean(agreements)
 
 if __name__ == "__main__":
-    X, y_species, y_family, species_to_family = load_data()
+    # Note: load_data now returns 3 variables
+    X, y_species, y_family = load_data()
     train_idx, test_idx = stratified_split(y_species, test_frac=0.2, seed=42)
-    X_train, y_train = X[train_idx], y_species[train_idx]
-    X_test, y_test = X[test_idx], y_species[test_idx]
+    X_train, y_train, X_test, y_test = X[train_idx], y_species[train_idx], X[test_idx], y_species[test_idx]
+    
+    # Build mapping from train only
+    species_to_family = get_species_to_family(y_train, y_family[train_idx])
     y_family_test = y_family[test_idx]
 
     print("=== Random Forest (T=50, m=4, max_depth=None) ===")

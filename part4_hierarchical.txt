@@ -1,16 +1,18 @@
 === Hierarchical Decision Tree ===
 
 --- Criterion: Gini ---
-Router Acc (Train):  100.00%
-Router Acc (Test):   95.07%
-Overall Acc (Train): 100.00%
-Overall Acc (Test):  93.82%
+Hierarchical Router Acc (Train):  100.00%
+Hierarchical Overall Acc (Train): 100.00%
+
+Hierarchical Overall Acc (Test): 93.82% vs Flat Species Acc: 94.86%
+Hierarchical Router Acc (Test):  95.07% vs Flat Family Acc: 96.11%
+
 Oracle Acc (Test):   98.26%
 
 Failure Fractions:
   p_A (Router Right, Expert Wrong): 1.25%
   p_B (Router Wrong, Species Wrong): 4.93%
-Numerical Check (A_overall == A_router - p_A): 0.9382 == 0.9382
+Numerical Check (A_overall == A_router - p_A): PASS
 
 Router Confusion Matrix (4x4):
 [[ 10   0   1   3]
@@ -38,16 +40,18 @@ Per-Family Overall Accuracy (Test Set):
 --------------------------------------------------
 
 --- Criterion: Entropy ---
-Router Acc (Train):  100.00%
-Router Acc (Test):   95.69%
-Overall Acc (Train): 100.00%
-Overall Acc (Test):  94.79%
+Hierarchical Router Acc (Train):  100.00%
+Hierarchical Overall Acc (Train): 100.00%
+
+Hierarchical Overall Acc (Test): 94.79% vs Flat Species Acc: 95.48%
+Hierarchical Router Acc (Test):  95.69% vs Flat Family Acc: 96.94%
+
 Oracle Acc (Test):   98.33%
 
 Failure Fractions:
   p_A (Router Right, Expert Wrong): 0.90%
   p_B (Router Wrong, Species Wrong): 4.31%
-Numerical Check (A_overall == A_router - p_A): 0.9479 == 0.9479
+Numerical Check (A_overall == A_router - p_A): PASS
 
 Router Confusion Matrix (4x4):
 [[ 10   0   0   4]

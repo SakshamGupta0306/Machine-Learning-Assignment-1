@@ -1,13 +1,14 @@
 import numpy as np
-from common import load_data, stratified_split, get_accuracy
+from common import load_data, stratified_split, get_accuracy, get_species_to_family
 
 class Node:
-    def __init__(self, feature_idx=None, threshold=None, left=None, right=None, value=None):
+    def __init__(self, feature_idx=None, threshold=None, left=None, right=None, value=None, gain=None):
         self.feature_idx = feature_idx
         self.threshold = threshold
         self.left = left
         self.right = right
-        self.value = value  # Predicted class if leaf
+        self.value = value
+        self.gain = gain
 
 class DecisionTree:
     def __init__(self, criterion="gini", max_depth=None, min_samples_split=2, max_features=None, rng=None):
@@ -52,10 +53,11 @@ class DecisionTree:
 
         n_features = X.shape[1]
         features = np.arange(n_features)
-        if self.max_features is not None and self.rng is not None:
+        if self.max_features is not None:
+            if self.rng is None:
+                raise ValueError("rng must be provided if max_features is set.")
             features = self.rng.choice(n_features, self.max_features, replace=False)
-            features = np.sort(features) # Process in index order to break ties correctly
-
+            features = np.sort(features)
         parent_impurity = self._impurity(class_weights)
 
         for f in features:
@@ -125,7 +127,7 @@ class DecisionTree:
         left_node = self._build_tree(X[left_mask], y[left_mask], w[left_mask], depth + 1)
         right_node = self._build_tree(X[right_mask], y[right_mask], w[right_mask], depth + 1)
 
-        return Node(feature_idx=f, threshold=thresh, left=left_node, right=right_node)
+        return Node(feature_idx=f, threshold=thresh, left=left_node, right=right_node, gain=best_gain)
 
     def predict(self, X):
         return np.array([self._traverse(x, self.root) for x in X])
@@ -139,41 +141,37 @@ class DecisionTree:
 
 def run_part1_sanity_checks():
     print("--- Part 1 Sanity Checks ---")
-    
-    # (a) G=0.5 and H=1 for class counts (3,3)[cite: 3]
     tree = DecisionTree(criterion="gini")
     tree.n_classes = 2
-    g = tree._impurity(np.array([3, 3]))
-    
-    tree.criterion = "entropy"
-    h = tree._impurity(np.array([3, 3]))
-    print(f"(a) Gini (3,3): {g:.2f} (Expected: 0.50) | Entropy: {h:.2f} (Expected: 1.00)")
+    g, h = tree._impurity(np.array([3, 3])), DecisionTree(criterion="entropy")._impurity(np.array([3, 3]))
+    print(f"(a) Gini: {g:.2f} | Entropy: {h:.2f}")
 
-    # (b) X=[[1],[2],[3],[4]], y=[0,0,1,1] must give split at t=2.5 with acc 1.0[cite: 3]
-    X_b = np.array([[1], [2], [3], [4]])
-    y_b = np.array([0, 0, 1, 1])
+    X_b, y_b = np.array([[1], [2], [3], [4]]), np.array([0, 0, 1, 1])
     tree_b = DecisionTree(criterion="entropy")
     tree_b.fit(X_b, y_b)
-    acc_b = get_accuracy(y_b, tree_b.predict(X_b))
-    print(f"(b) Acc: {acc_b*100:.0f}% (Expected: 100%), Threshold: {tree_b.root.threshold} (Expected: 2.5)")
+    print(f"(b) Acc: {get_accuracy(y_b, tree_b.predict(X_b))*100:.0f}%, Threshold: {tree_b.root.threshold}, Gain: {tree_b.root.gain:.4f}")
 
-    # (c) Three identical samples, weights [0.1, 0.1, 0.8], labels [0,0,1] -> predicts 1[cite: 3]
-    X_c = np.array([[1], [1], [1]]) # Identical features force it to become a leaf
-    y_c = np.array([0, 0, 1])
-    w_c = np.array([0.1, 0.1, 0.8])
+    X_c, y_c, w_c = np.array([[1], [1], [1]]), np.array([0, 0, 1]), np.array([0.1, 0.1, 0.8])
     tree_c = DecisionTree()
     tree_c.fit(X_c, y_c, sample_weight=w_c)
-    print(f"(c) Leaf prediction: {tree_c.predict(X_c)[0]} (Expected: 1)\n")
+    print(f"(c) Leaf prediction: {tree_c.predict(X_c)[0]}")
+    
+    # New check (d)
+    tree_d = DecisionTree()
+    tree_d.fit(np.random.rand(5, 3), np.zeros(5, int))
+    print(f"(d) Pure node prediction: {tree_d.predict(np.random.rand(1, 3))[0]} (Expected: 0)\n")
 
 
 if __name__ == "__main__":
     run_part1_sanity_checks()
     
     # 1. Load Data & Split
-    X, y_species, y_family, species_to_family = load_data()
+    X, y_species, y_family = load_data()
     train_idx, test_idx = stratified_split(y_species, test_frac=0.2, seed=42)
-    X_train, y_train = X[train_idx], y_species[train_idx]
-    X_test, y_test = X[test_idx], y_species[test_idx]
+    X_train, y_train, X_test, y_test = X[train_idx], y_species[train_idx], X[test_idx], y_species[test_idx]
+    
+    # Build mapping from train only
+    species_to_family = get_species_to_family(y_train, y_family[train_idx])
     y_family_test = y_family[test_idx]
 
     print(f"Total rows: {len(X)}")

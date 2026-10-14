@@ -13,32 +13,27 @@ def stratified_split(labels, test_frac=0.2, seed=42):
 
 def load_data(filepath="Frogs_MFCCs.csv"):
     df = pd.read_csv(filepath)
-    
-    # Dynamically extract the 22 MFCCs features to ignore spacing inconsistencies
     feature_cols = [col for col in df.columns if col.startswith("MFCCs_")]
     X = df[feature_cols].values
     
-    # Extract raw string labels
-    species_raw = df['Species'].values
-    family_raw = df['Family'].values
-    
-    # Sort classes alphabetically so integer mapping aligns with "smallest class label" tie-breaking
+    species_raw, family_raw = df['Species'].values, df['Family'].values
     species_classes = np.sort(np.unique(species_raw))
     family_classes = np.sort(np.unique(family_raw))
     
-    # Map strings to integers
     species_to_int = {s: i for i, s in enumerate(species_classes)}
     family_to_int = {f: i for i, f in enumerate(family_classes)}
     
     y_species = np.array([species_to_int[s] for s in species_raw])
     y_family = np.array([family_to_int[f] for f in family_raw])
-    
-    # Build the Species -> Family mapping for derived family accuracy
-    species_to_family = {}
-    for s_idx, f_idx in zip(y_species, y_family):
-        species_to_family[s_idx] = f_idx
         
-    return X, y_species, y_family, species_to_family
+    return X, y_species, y_family
+
+def get_species_to_family(y_species_train, y_family_train):
+    """Build mapping strictly from training data to prevent data leakage."""
+    mapping = {}
+    for s_idx, f_idx in zip(y_species_train, y_family_train):
+        mapping[s_idx] = f_idx
+    return mapping
 
 def get_accuracy(y_true, y_pred):
     return np.mean(y_true == y_pred)
