@@ -1,0 +1,33 @@
+Total rows: 7195
+Total features: 22
+Train split: 5756 rows, Test split: 1439 rows
+
+--- Single Decision Tree (Unconstrained) ---
+Criterion: Gini
+  Train Acc (Species):  100.00%
+  Test Acc (Species):   94.86%
+  Derived Family Acc:   96.11%
+
+Criterion: Entropy
+  Train Acc (Species):  100.00%
+  Test Acc (Species):   95.48%
+  Derived Family Acc:   96.94%
+
+--- Depth Sweep Analysis ---
+Gini Criterion:
+  Depth    1: Train= 60.98%, Test= 61.01%
+  Depth    2: Train= 69.13%, Test= 69.28%
+  Depth    3: Train= 78.51%, Test= 79.22%
+  Depth    5: Train= 90.10%, Test= 88.60%
+  Depth    8: Train= 97.85%, Test= 93.88%
+  Depth   12: Train= 99.81%, Test= 94.79%
+  Depth None: Train=100.00%, Test= 94.86%
+
+Entropy Criterion:
+  Depth    1: Train= 61.78%, Test= 62.40%
+  Depth    2: Train= 73.38%, Test= 73.94%
+  Depth    3: Train= 84.40%, Test= 84.50%
+  Depth    5: Train= 91.80%, Test= 90.90%
+  Depth    8: Train= 98.66%, Test= 94.86%
+  Depth   12: Train=100.00%, Test= 95.48%
+  Depth None: Train=100.00%, Test= 95.48%
